@@ -2,9 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Co_Working.Domain</RootNamespace>
+    <RootNamespace>Co_Woring.Application</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Co-Working.Domain\Co-Working.Core.csproj" />
+  </ItemGroup>
 
 </Project>
