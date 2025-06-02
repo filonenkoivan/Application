@@ -28,6 +28,9 @@ namespace Co_Working.Persistence
                         "images/workspaces/Openspace-4.jpg"
                     },
                         Amenities = new List<string> { "conditioner", "game", "wifi", "tea" },
+                        AvailabilityDesks = new List<Desk> {
+                            new Desk { Quantity = 24 }
+                        }
                     },
                     new Workspace
                     {
@@ -43,20 +46,10 @@ namespace Co_Working.Persistence
                         Amenities = new List<string> { "wifi", "conditioner", "music" },
                         Capacity = new List<int> { 1, 2, 5, 10 },
                         AvailabilityRooms = new List<Room> {
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 1 },
-                            new Room { Capacity = 2 },
-                            new Room { Capacity = 2 },
-                            new Room { Capacity = 2 },
-                            new Room { Capacity = 2 },
-                            new Room { Capacity = 5 },
-                            new Room { Capacity = 5 },
-                            new Room { Capacity = 5 },
+                            new Room {Capacity = 1, Quantity = 7},
+                            new Room {Capacity = 2, Quantity = 4},
+                            new Room {Capacity = 5, Quantity = 3},
+                            new Room {Capacity = 10, Quantity = 1},
                         },
 
                     },
@@ -74,11 +67,8 @@ namespace Co_Working.Persistence
                         Amenities = new List<string> { "wifi", "conditioner", "music" },
                         Capacity = new List<int> { 10, 20 },
                         AvailabilityRooms = new List<Room> {
-                            new Room { Capacity = 10 },
-                            new Room { Capacity = 10 },
-                            new Room { Capacity = 10 },
-                            new Room { Capacity = 10 },
-                            new Room { Capacity = 20 },
+                            new Room { Capacity = 10, Quantity= 4},
+                            new Room { Capacity = 20, Quantity = 1},
                         },
                     });
 

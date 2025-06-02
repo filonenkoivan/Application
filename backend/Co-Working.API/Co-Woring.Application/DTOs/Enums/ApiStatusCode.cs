@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Co_Woring.Application.DTOs.Enums
 {
-    public enum StatusCodes
+    public enum ApiStatusCode
     {
         Success = 200,
         NotFound = 404,

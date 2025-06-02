@@ -19,6 +19,7 @@ namespace Co_Working.Domain.Entities
         public int DescCount { get; set; }
         //for private and meeting
         public List<Room> AvailabilityRooms { get; set; } = new();
+        public List<Desk> AvailabilityDesks { get; set; } = new();
         public List<int>? Capacity { get; set; }
 
     }

@@ -17,5 +17,6 @@ namespace Co_Working.Domain.Entities
         public DateTime EndDateTime { get; set; }
         public int SessionId { get; set; }
         public int RoomCapacity { get; set; }
+        public Room? Room { get; set; }
     }
 }
