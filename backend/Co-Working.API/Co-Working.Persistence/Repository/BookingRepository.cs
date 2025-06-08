@@ -1,9 +1,12 @@
 ﻿using Co_Woring.Application.DTOs.Booking;
+using Co_Woring.Application.DTOs.Bookings;
+using Co_Woring.Application.DTOs.Desks;
 using Co_Woring.Application.DTOs.Rooms;
 using Co_Woring.Application.DTOs.Workspaces;
 using Co_Woring.Application.Interfaces;
 using Co_Working.Domain.Entities;
 using Co_Working.Domain.Enums;
+using Co_Working.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,35 +20,86 @@ namespace Co_Working.Persistence.Repository
     {
         public async Task<Booking> AddAsync(Booking booking)
         {
+
             await db.Bookings.AddAsync(booking);
 
-            var currentRooms = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == booking.WorkSpaceType);
-
-            if (currentRooms == null)
+            if (booking.RoomCapacity > 0)
             {
-                return null;
-            }
+                var currentRooms = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == booking.WorkSpaceType);
 
-            var itemForDelete = currentRooms.AvailabilityRooms.FirstOrDefault(x => x.Capacity == booking.RoomCapacity);
-            itemForDelete.Quantity--;
+                if (currentRooms == null)
+                    return null;
+
+                var itemForDelete = currentRooms.AvailabilityRooms.FirstOrDefault(x => x.Capacity == booking.RoomCapacity);
+                itemForDelete.Quantity--;
+            }
+            // ELSE для Desk — нічого не робимо
 
             await db.SaveChangesAsync();
 
             return booking;
         }
-
-        public async Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, DateTime startDate, int roomCapacity, WorkSpaceType workSpaceType)
+        public async Task UpdateAsync(Booking booking)
         {
-            var result = await db.Bookings.AnyAsync(x =>
-            x.WorkSpaceType == workSpaceType &&
-            x.RoomCapacity == roomCapacity &&
-            x.StartDateTime.Date == startDate.Date &&
-            x.StartDateTime < endDateTime &&
-            x.EndDateTime > startDateTime);
-
-            return result;
+            db.Bookings.Update(booking);
+            await db.SaveChangesAsync();
         }
+        public async Task RevertAvailabilityAsync(Booking booking)
+        {
+            var workspace = await db.Workspace
+                .Include(w => w.AvailabilityDesks)
+                .Include(w => w.AvailabilityRooms)
+                .FirstOrDefaultAsync(w => w.WorkSpaceType == booking.WorkSpaceType);
 
+            if (booking.RoomCapacity > 0)
+            {
+                var room = workspace?.AvailabilityRooms.FirstOrDefault(x => x.Capacity == booking.RoomCapacity);
+                if (room != null) room.Quantity++;
+            }
+
+            await db.SaveChangesAsync();
+        }
+        public async Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, int roomCapacity, WorkSpaceType workSpaceType, int deskNumber = 0)
+        {
+            var dateOnlyStart = startDateTime.Date;
+            var dateOnlyEnd = endDateTime.Date;
+
+            for (var date = dateOnlyStart; date <= dateOnlyEnd; date = date.AddDays(1))
+            {
+                var dailyStart = date == dateOnlyStart ? startDateTime.TimeOfDay : TimeSpan.Zero;
+                var dailyEnd = date == dateOnlyEnd ? endDateTime.TimeOfDay : new TimeSpan(23, 59, 59);
+
+                DateTime currentDayStart = date.Add(dailyStart);
+                DateTime currentDayEnd = date.Add(dailyEnd);
+
+                bool isOverlapping;
+
+                if (roomCapacity == 0)
+                {
+                    isOverlapping = await db.Bookings.AnyAsync(x =>
+                        x.WorkSpaceType == workSpaceType &&
+                        x.RoomCapacity == 0 &&
+                        x.DeskNumber == deskNumber &&
+                        x.StartDateTime.Date == date &&
+                        x.StartDateTime.TimeOfDay < dailyEnd &&
+                        x.EndDateTime.TimeOfDay > dailyStart);
+                }
+                else
+                {
+                    isOverlapping = await db.Bookings.AnyAsync(x =>
+                        x.WorkSpaceType == workSpaceType &&
+                        x.RoomCapacity == roomCapacity &&
+                        x.StartDateTime.Date == date &&
+                        x.StartDateTime.TimeOfDay < dailyEnd &&
+                        x.EndDateTime.TimeOfDay > dailyStart);
+                }
+
+                if (isOverlapping)
+                    return true;
+            }
+
+            return false;
+        }
         public async Task<List<WorkspaceResponse>> GetWorkspacesAsync()
         {
             return await db.Workspace
@@ -61,16 +115,21 @@ namespace Co_Working.Persistence.Repository
                         Id = y.Id,
                         Quantity = y.Quantity
                     }).ToList(),
+                    AvailabilityDesks = x.AvailabilityDesks
+                    .Select(y => new DeskDTO
+                    {
+                        Id = y.Id,
+                        Quantity = y.Quantity
+                    }).ToList(),
                     Amenities = x.Amenities,
                     Capacity = x.Capacity,
                     DescCount = x.DescCount,
                     PhotoList = x.PhotoList,
                 }).ToListAsync();
         }
-
         public async Task<List<BookingResponse>> GetBookingsAsync()
         {
-            return await db.Bookings.Select(x => new BookingResponse
+            var bookingResponse = await db.Bookings.Select(x => new BookingResponse
             {
                 Name = x.Name,
                 SessionId = x.SessionId,
@@ -81,30 +140,37 @@ namespace Co_Working.Persistence.Repository
                 EndDate = x.EndDateTime.Date,
                 EndTime = x.EndDateTime.TimeOfDay,
                 WorkSpaceType = x.WorkSpaceType,
-                RoomCapacity = x.RoomCapacity
+                RoomCapacity = x.RoomCapacity,
+                DeskNumber = x.DeskNumber,
             }).ToListAsync();
-        }
 
+            return bookingResponse;
+        }
         public async Task<bool> DeleteBooking(int id)
         {
             var itemForDelete = await db.Bookings.FirstOrDefaultAsync(x => x.Id == id);
-            db.Bookings.Remove(itemForDelete);
 
             if (itemForDelete == null)
-            {
                 return false;
+
+            db.Bookings.Remove(itemForDelete);
+
+            if (itemForDelete.RoomCapacity > 0)
+            {
+                var restoreRoom = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == itemForDelete.WorkSpaceType);
+                restoreRoom.AvailabilityRooms.FirstOrDefault(x => x.Capacity == itemForDelete.RoomCapacity).Quantity++;
             }
 
-            var restoreRoom = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == itemForDelete.WorkSpaceType);
-            restoreRoom.AvailabilityRooms.FirstOrDefault(x => x.Capacity == itemForDelete.RoomCapacity).Quantity++;
-
             await db.SaveChangesAsync();
-
             return true;
         }
-
-        public async Task<Room> GetRoomsByWorkspaceAndCapacity(WorkSpaceType type, int capacity)
+        public async Task<IBookable> GetBookableByWorkspaceAndCapacity(WorkSpaceType type, int capacity, int deskNumber = 0)
         {
+            if (capacity == 0)
+            {
+                var result = await db.Workspace.Include(x => x.AvailabilityDesks).FirstOrDefaultAsync(x => x.WorkSpaceType == type);
+                return result.AvailabilityDesks.FirstOrDefault(x => x.Id == deskNumber);
+            }
             var workSpace = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == type);
             return workSpace.AvailabilityRooms.FirstOrDefault(x => x.Capacity == capacity);
         }
@@ -115,48 +181,83 @@ namespace Co_Working.Persistence.Repository
             {
                 Email = x.Email,
                 RoomCapacity = x.RoomCapacity,
+                DeskNumber = x.DeskNumber,
                 StartDate = x.StartDateTime.Date,
                 EndDate = x.EndDateTime,
                 EndTime = x.EndDateTime.TimeOfDay,
                 StartTime = x.StartDateTime.TimeOfDay,
                 Id = x.Id,
                 Name = x.Name,
-                WorkSpaceType = x.WorkSpaceType
+                WorkSpaceType = x.WorkSpaceType,
+
 
             }).FirstOrDefaultAsync(x => x.Id == id);
 
         }
-
         public async Task<Booking> GetBookingEntityAsync(int id)
         {
             return await db.Bookings.FirstOrDefaultAsync(x => x.Id == id);
 
         }
-
         public async Task<List<RoomDTO>> GetRoomsByType(WorkSpaceType type)
         {
             var workSpace = await db.Workspace.Include(x => x.AvailabilityRooms).FirstOrDefaultAsync(x => x.WorkSpaceType == type);
 
-            return workSpace.AvailabilityRooms.Select(x => new RoomDTO { Capacity = x.Capacity, Quantity = x.Quantity }).OrderBy(x => x.Capacity).ToList();
+            return workSpace.AvailabilityRooms.Select(x => new RoomDTO { Capacity = x.Capacity, Quantity = x.Quantity, Id = x.Id }).OrderBy(x => x.Capacity).ToList();
         }
-
-        public async Task UpdateAsync(Booking booking)
+        public async Task<List<DeskDTO>> GetDesksByType(WorkSpaceType type)
         {
-            db.Bookings.Update(booking);
+            var workSpace = await db.Workspace.Include(x => x.AvailabilityDesks).FirstOrDefaultAsync(x => x.WorkSpaceType == type);
+
+            return workSpace.AvailabilityDesks.Select(x => new DeskDTO { Quantity = x.Quantity, Id = x.Id }).ToList();
+        }
+        public async Task DecreaseAvailabilityAsync(Booking booking)
+        {
+            var workspace = await db.Workspace
+                .Include(w => w.AvailabilityDesks)
+                .Include(w => w.AvailabilityRooms)
+                .FirstOrDefaultAsync(w => w.WorkSpaceType == booking.WorkSpaceType);
+
+            if (booking.RoomCapacity > 0)
+            {
+                var room = workspace?.AvailabilityRooms.FirstOrDefault(x => x.Capacity == booking.RoomCapacity);
+                if (room != null && room.Quantity > 0) room.Quantity--;
+            }
+
             await db.SaveChangesAsync();
         }
-
-        public async Task OpenSpaceDescsChange(WorkSpaceType workspace, bool increment)
+        public async Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity)
         {
-            if (increment)
+            var workspace = db.Bookings.Where(x => x.WorkSpaceType == type);
+            if (capacity == 0)
             {
-                db.Workspace.FirstOrDefault(x => x.WorkSpaceType == workspace).DescCount++;
+                return await workspace.Select(x => new BookingAvailableResponse
+                {
+                    StartDateTime = x.StartDateTime,
+                    EndDateTime = x.EndDateTime,
+
+                }).ToListAsync();
             }
             else
             {
-                db.Workspace.FirstOrDefault(x => x.WorkSpaceType == workspace).DescCount--;
+                return await workspace.Where(x => x.RoomCapacity == capacity).Select(x => new BookingAvailableResponse
+                {
+                    StartDateTime = x.StartDateTime,
+                    EndDateTime = x.EndDateTime,
+
+                }).ToListAsync();
             }
-            await db.SaveChangesAsync();
+        }
+        public async Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId)
+        {
+            var workspace = db.Bookings.Where(x => x.WorkSpaceType == WorkSpaceType.OpenSpace);
+
+            return await workspace.Where(x => x.DeskNumber == deskId).Select(x => new BookingAvailableResponse
+            {
+                StartDateTime = x.StartDateTime,
+                EndDateTime = x.EndDateTime,
+
+            }).ToListAsync();
         }
     }
 }

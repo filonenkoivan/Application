@@ -1,4 +1,5 @@
-﻿using Co_Woring.Application.DTOs.Rooms;
+﻿using Co_Woring.Application.DTOs.Desks;
+using Co_Woring.Application.DTOs.Rooms;
 using Co_Working.Domain.Entities;
 using Co_Working.Domain.Enums;
 using System;
@@ -21,6 +22,7 @@ namespace Co_Woring.Application.DTOs.Workspaces
         public int DescCount { get; set; }
         //for private and meeting
         public List<RoomDTO> AvailabilityRooms { get; set; } = new();
+        public List<DeskDTO> AvailabilityDesks { get; set; } = new();
         public List<int>? Capacity { get; set; }
     }
 }

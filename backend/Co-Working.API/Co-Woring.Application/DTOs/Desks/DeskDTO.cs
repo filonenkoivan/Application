@@ -4,15 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Co_Working.Domain.Entities
+namespace Co_Woring.Application.DTOs.Desks
 {
-    public class Desk
+    public class DeskDTO
     {
         public int Id { get; set; }
         public int Quantity { get; set; }
-
-        public int WorkSpaceItemId { get; set; }
-        public Workspace? WorkspaceItem { get; set; }
-
     }
 }

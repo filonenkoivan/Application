@@ -24,8 +24,8 @@ namespace Co_Woring.Application.DTOs.Booking
         public TimeSpan StartTime { get; set; }
         [Required]
         public TimeSpan EndTime { get; set; }
-        [Required]
         public int RoomCapacity { get; set; }
+        public int DeskNumber { get; set; }
         public int SessionId { get; set; }
     }
 }

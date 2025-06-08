@@ -20,7 +20,6 @@ namespace Co_Working.Persistence
                         Name = "Open space",
                         Description = "A vibrant shared area perfect for freelancers or small teams who enjoy a collaborative atmosphere. Choose any available desk and get to work with flexibility and ease.",
                         WorkSpaceType = WorkSpaceType.OpenSpace,
-                        DescCount = 24,
                         PhotoList = new List<string> {
                         "images/workspaces/Openspace.jpg",
                         "images/workspaces/Openspace-2.jpg",
@@ -28,9 +27,9 @@ namespace Co_Working.Persistence
                         "images/workspaces/Openspace-4.jpg"
                     },
                         Amenities = new List<string> { "conditioner", "game", "wifi", "tea" },
-                        AvailabilityDesks = new List<Desk> {
-                            new Desk { Quantity = 24 }
-                        }
+                        AvailabilityDesks = Enumerable.Range(1, 24)
+                        .Select(_ => new Desk())
+                        .ToList()
                     },
                     new Workspace
                     {
