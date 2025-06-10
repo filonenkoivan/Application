@@ -517,7 +517,7 @@ export class WorkspaceFormComponent implements OnInit {
   dialogTitle: string = '';
   dialogMessage: string = '';
   dialogLinkUrl: string | null = null;
-  dialogLinkText: string = 'Повернутися';
+  dialogLinkText: string = 'Back';
   isCorrect: boolean = true;
   openCustomDialog() {
     const dialogElement = document.getElementById('custom-dialog');

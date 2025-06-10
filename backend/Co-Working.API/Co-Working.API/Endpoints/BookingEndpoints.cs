@@ -30,7 +30,9 @@ namespace Co_Working.API.Endpoints
 
             builder.MapPut("/bookings/{id}", UpdateBooking);
 
+
             builder.MapGet("/workspaces", GetWorkspaces);
+
 
             builder.MapGet("/bookings/rooms", GetRoomsByType);
 
@@ -89,7 +91,6 @@ namespace Co_Working.API.Endpoints
                 : Results.BadRequest(new Response<string>(ApiStatusCode.BadRequest, result.Message, "Please choose a different time slot"));
 
         }
-
         public async static Task<Response<List<WorkspaceResponse>>> GetWorkspaces(IBookingServices services)
         {
             List<WorkspaceResponse> result = await services.GetWorkspacesAsync();
@@ -113,7 +114,6 @@ namespace Co_Working.API.Endpoints
         {
             return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsDesks(id));
         }
-
         public async static Task<BookingExistsResponse> CheckBookingExists([FromQuery] WorkSpaceType workspaceId, int sessionId, IBookingServices services)
         {
             var booking = await services.GetBookingByWorkspaceAndSessionIdAsync(workspaceId, sessionId);

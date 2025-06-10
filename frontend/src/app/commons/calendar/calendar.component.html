@@ -15,7 +15,7 @@
     <input
       matEndDate
       placeholder="End date"
-      [ngModel]="workspaceType === '3' ? startDate : endDate"
+      [(ngModel)]="endDate"
       name="endDate"
       [readonly]="workspaceType === '3'"
     />

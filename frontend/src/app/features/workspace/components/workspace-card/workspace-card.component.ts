@@ -29,7 +29,6 @@ export class WorkspaceCardComponent implements OnInit {
   ngOnInit(): void {
     this.groupRooms();
     this.checkBookingExists();
-    console.log(this.workspace);
   }
 
   private groupRooms(): void {
@@ -57,7 +56,6 @@ export class WorkspaceCardComponent implements OnInit {
       .subscribe({
         next: (response: BookingExistsResponse) => {
           this.bookingExistsResponse = response;
-          console.log('BookingExistsResponse:', response);
         },
         error: (error: any) => {
           console.error('Error checking booking exists:', error);
