@@ -15,7 +15,7 @@ var dbName = Environment.GetEnvironmentVariable("DB_NAME");
 var user = Environment.GetEnvironmentVariable("DB_USER");
 var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
-var connectionString = $"Server=localhost;Port=5432;Database=cowork;User Id=postgres;Password=dbpass";
+var connectionString = $"Server=postgres;Port=5432;Database=cowork;User Id=postgres;Password=dbpass";
 
 
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
