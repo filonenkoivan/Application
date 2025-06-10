@@ -1,0 +1,67 @@
+<div class="mb-[24px]">
+  <div
+    class="flex max-w-7xl bg-white rounded-2xl p-[16px] max-w-[100%] flex-wrap space-y-[15px]"
+  >
+    <div class="mr-[32px] rounded-2xl overflow-hidden">
+      <img [src]="getWorkspaceImage()" alt="Booking photo" />
+    </div>
+
+    <div class="grow space-y-[24px]">
+      <span class="text-[32px] leading-[120%] font-bold block">
+        {{ getWorkspaceTypeName() }}
+        <span *ngIf="booking.roomCapacity > 0"
+          >for {{ booking.roomCapacity }} people</span
+        >
+      </span>
+
+      <div class="space-y-[12px]">
+        <div class="flex space-x-[16px] items-center">
+          <img
+            src="images/workspaces/icons/calendar.svg"
+            alt="calendar"
+            class="icon"
+          />
+          <span>
+            {{ booking.startDate | date : "MMMM d, y" }}
+            - {{ booking.endDate | date : "MMMM d, y" }}
+            <ng-container
+              *ngIf="!isSameDay(booking.startDate, booking.endDate)"
+            >
+              ({{ getDateDuration(booking.startDate, booking.endDate) }})
+            </ng-container>
+          </span>
+        </div>
+
+        <div class="flex space-x-[16px] items-center">
+          <img
+            src="images/workspaces/icons/clock.svg"
+            alt="clock"
+            class="icon"
+          />
+          <span>
+            from {{ getFormattedTime(booking.startTime) }} to
+            {{ getFormattedTime(booking.endTime) }}
+            <ng-container *ngIf="isSameDay(booking.startDate, booking.endDate)">
+              ({{ getTimeDuration(booking.startTime, booking.endTime) }})
+            </ng-container>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-x-[16px]">
+      <button
+        class="p-[13px] border rounded-[8px] border-[#C2BCD8] cursor-pointer"
+        (click)="editBooking(booking.id)"
+      >
+        <img src="images/icons/edit.svg" alt="Edit" />
+      </button>
+      <button
+        class="p-[13px] border rounded-[8px] border-[#F56E6E] cursor-pointer"
+        (click)="onDelete()"
+      >
+        <img src="images/icons/delete.svg" alt="Delete" />
+      </button>
+    </div>
+  </div>
+</div>

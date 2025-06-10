@@ -1,0 +1,26 @@
+@media (max-width: 1450px) {
+  .desc {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .benefits {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .desc {
+    max-width: 300px;
+  }
+}
+@media (max-width: 1100px) {
+}
+@media (max-width: 772px) {
+  .container {
+    flex-direction: column;
+    padding-left: 0px;
+  }
+  .row-container {
+    flex-direction: column;
+  }
+}

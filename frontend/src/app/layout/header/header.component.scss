@@ -1,0 +1,33 @@
+.link {
+  position: relative;
+  padding-bottom: 10.5px;
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background-color: #5c5af3;
+    transition: width 0.3s cubic-bezier(1, 0.01, 0.78, 0.84);
+  }
+}
+
+.active-link {
+  &::before {
+    width: 100%;
+  }
+}
+
+.list-item:not(:last-child) {
+  margin-right: 15px;
+}
+
+.list-item a {
+  font-size: 14px;
+}
+
+header {
+  padding-left: 5px;
+  padding-right: 5px;
+}

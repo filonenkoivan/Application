@@ -1,0 +1,52 @@
+<mat-form-field appearance="fill">
+  <mat-label>Booking date</mat-label>
+  <mat-date-range-input
+    [rangePicker]="picker"
+    [min]="minSelectableDate"
+    [max]="maxEndDate"
+  >
+    <input
+      matStartDate
+      placeholder="Start date"
+      [(ngModel)]="startDate"
+      name="startDate"
+      (dateChange)="onStartDateSelected($event.value)"
+    />
+    <input
+      matEndDate
+      placeholder="End date"
+      [ngModel]="workspaceType === '3' ? startDate : endDate"
+      name="endDate"
+      [readonly]="workspaceType === '3'"
+    />
+  </mat-date-range-input>
+  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-date-range-picker #picker></mat-date-range-picker>
+</mat-form-field>
+<mat-select
+  class="mb-[15px]"
+  [(ngModel)]="startTime"
+  (ngModelChange)="onStartTimeChanged($event)"
+>
+  <mat-option
+    *ngFor="let t of timeOptions"
+    [value]="t"
+    [disabled]="!startDate || isTimeBlocked(startDate, t)"
+  >
+    {{ t }}
+  </mat-option>
+</mat-select>
+
+<mat-select
+  [(ngModel)]="endTime"
+  (ngModelChange)="onEndTimeChanged($event)"
+  class="mb-[15px]"
+>
+  <mat-option
+    *ngFor="let t of timeOptions"
+    [value]="t"
+    [disabled]="!endDate || isSlotBlocked(endDate, t)"
+  >
+    {{ t }}
+  </mat-option>
+</mat-select>

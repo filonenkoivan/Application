@@ -1,0 +1,106 @@
+<div class="relative">
+  <h2 class="title">Book your workspace</h2>
+  <form
+    [formGroup]="bookingForm"
+    (ngSubmit)="onSubmit()"
+    class="flex space-x-[30px] text-[16px]"
+  >
+    <div
+      class="bg-[#ffffff] space-y-[40px] flex flex-col p-[40px] rounded-[20px] grow max-w-[762px] first-form"
+    >
+      <span class="text-[32px] font-bold">Reservation details</span>
+      <div>
+        <label for="name" class="mb-[8px] block">Name</label>
+        <input
+          formControlName="name"
+          type="text"
+          id="name"
+          required="ds"
+          class="border rounded-lg border-[#C2BCD8] min-w-[100%] h-[48px] pl-[10px]"
+        />
+      </div>
+      <div>
+        <label for="email" class="mb-[8px] block">Email</label>
+        <input
+          formControlName="email"
+          type="email"
+          id="email"
+          class="border rounded-lg border-[#C2BCD8] min-w-[100%] h-[48px] pl-[10px]"
+        />
+      </div>
+      <div>
+        <label for="type" class="mb-[8px] block">Workspace type</label>
+        <app-custom-select
+          id="type"
+          formControlName="workspaceType"
+          [options]="workspaceOptions"
+          placeholder="Select workspace type"
+        ></app-custom-select>
+      </div>
+      <div class="flex flex-col gap-4" *ngIf="rooms().length != 0">
+        <div *ngFor="let size of rooms()" class="flex items-center gap-3">
+          <label class="flex items-center gap-3 cursor-pointer w-full">
+            <input
+              type="radio"
+              class="peer hidden"
+              [id]="'room-' + size"
+              [value]="size.capacity.toString()"
+              formControlName="roomSize"
+            />
+            <span
+              class="w-5 h-5 border-2 border-[#C2BCD8] rounded-sm flex items-center justify-center peer-checked:bg-[#5C5AF3] peer-checked:border-[#5C5AF3] transition-all"
+            >
+              <img src="images/icons/complete.svg" alt="" />
+            </span>
+            <span class="text-[#2D2D2D] text-[14px]">
+              Room for
+              <span class="font-bold"
+                >{{ size.capacity }}
+                {{ size.capacity > 1 ? "people" : "person" }}</span
+              >
+            </span>
+          </label>
+        </div>
+      </div>
+      <div *ngIf="desks().length !== 0">
+        <app-custom-select
+          id="desk"
+          [options]="desksOptions"
+          placeholder="Select desk"
+          formControlName="desk"
+        ></app-custom-select>
+      </div>
+    </div>
+    <div class="bg-[#ffffff] p-[40px] rounded-[20px] space-y-[32px]">
+      <span class="block text-[32px] font-bold leading=[120%]"
+        >Choose date and time</span
+      >
+      <app-calendar
+        [blockedSlotsPerDay]="blockedSlotsPerDay"
+        (startDateTimeChange)="onCalendarStartDateTimeChange($event)"
+        (endDateTimeChange)="onCalendarEndDateTimeChange($event)"
+        [maxRangeDays]="getMaxRangeDays()"
+        [workspaceType]="getWorkspaceType().toString()"
+        [startDateTime]="formStartDateTime"
+        [endDateTime]="formEndDateTime"
+      ></app-calendar>
+
+      <app-custom-dialog
+        #customDialog
+        [title]="dialogTitle"
+        [message]="dialogMessage"
+        [linkUrl]="dialogLinkUrl"
+        [linkText]="dialogLinkText"
+        [isCorrect]="isCorrect"
+      >
+      </app-custom-dialog>
+      <button
+        type="submit"
+        class="bg-[#5C5AF3] rounded-lg text-white py-[15px] min-w-[100%] cursor-pointer"
+        [disabled]="!bookingForm.valid || !selectionValidFlag"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

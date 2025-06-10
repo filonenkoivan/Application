@@ -1,0 +1,17 @@
+<div class="custom-select" [class.open]="isOpen" (click)="toggleDropdown()">
+  <div class="selected-value">
+    {{ selectedLabel || placeholder }}
+    <div class="arrow">
+      <img src="images/icons/arrow.svg" alt="" />
+    </div>
+  </div>
+  <ul class="options" *ngIf="isOpen">
+    <li
+      *ngFor="let option of options"
+      (click)="selectOption(option); $event.stopPropagation()"
+      [class.selected]="option.value === value"
+    >
+      {{ option.label }}
+    </li>
+  </ul>
+</div>

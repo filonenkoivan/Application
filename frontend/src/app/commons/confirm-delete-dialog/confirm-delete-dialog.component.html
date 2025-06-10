@@ -1,0 +1,25 @@
+<div class="p-[40px]">
+  <div class="icon-trash"><img src="images/icons/trash.svg" alt="" /></div>
+  <mat-dialog-content class="p-[0px]">
+    <h2>Cancel your booking?</h2>
+    <span>This action cannot be undone</span>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button (click)="onConfirm()" class="button-dialog">
+      This action cannot be undone
+    </button>
+    <button
+      mat-button
+      (click)="onCancel()"
+      class="button-dialog button-dialog--blue"
+    >
+      No, keep it
+    </button>
+  </mat-dialog-actions>
+  <button
+    class="cancel absolute top-[49px] right-[49px] cursor-pointer"
+    (click)="onCancel()"
+  >
+    <img src="images/icons/cancel.svg" alt="" />
+  </button>
+</div>

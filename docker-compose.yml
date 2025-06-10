@@ -1,0 +1,45 @@
+services:
+  co-working.api:
+    build:
+      context: ./backend
+      dockerfile: ./Co-Working.API/Dockerfile
+    ports:
+      - "5086:5086"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${DB_PORT}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dbpass
+      POSTGRES_DB: cowork
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - co-working.api
+
+volumes:
+  postgres-data:
+
+
+
+
+
+
+
+

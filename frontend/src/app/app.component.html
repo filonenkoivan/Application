@@ -1,4 +1,17 @@
 <app-header></app-header>
-<div class="px-[80px] pt-[76px]">
-  <app-workspace-card></app-workspace-card>
+<div
+  class="px-[80px] pt-[28.5px] pb-[20px] main-container max-w-[1440px] ml-[auto] mr-[auto]"
+>
+  <a
+    (click)="goBack()"
+    class="cursor-pointer text-[#5C5AF3] pb-[28.5px] flex items-center"
+    *ngIf="router.url !== '/'"
+  >
+    <div class="mr-[12px]">
+      <img src="images/icons/back.svg" alt="" />
+    </div>
+
+    Go back</a
+  >
+  <router-outlet></router-outlet>
 </div>

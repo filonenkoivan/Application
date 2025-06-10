@@ -1,0 +1,30 @@
+<header
+  class="px-[80px] py-[20px] flex items-center bg-white justify-between flex-wrap"
+>
+  <div>
+    <a routerLink=""> <img src="images/Logo.png" alt="co-working" /></a>
+  </div>
+  <nav>
+    <ul class="space-x-[64px] flex">
+      <li class="list-item">
+        <a
+          routerLink=""
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="font-semibold leading-[1.2] cursor-[pointer] link"
+          routerLinkActive="active-link"
+        >
+          Workspaces
+        </a>
+      </li>
+      <li class="list-item">
+        <a
+          routerLink="/mybooking"
+          routerLinkActive="active-link"
+          class="font-semibold leading-[1.2] cursor-[pointer] link"
+        >
+          My bookings
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>

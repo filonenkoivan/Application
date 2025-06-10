@@ -1,0 +1,24 @@
+<h2 class="title">My bookings on Green Coworking</h2>
+<app-booking
+  *ngFor="let booking of bookings"
+  [booking]="booking"
+  (deleteBooking)="onDeleteBooking($event)"
+></app-booking>
+
+<div
+  *ngIf="bookings.length === 0"
+  class="flex column flex-col w-[100%] items-center justify-center bg-[#ffffff] rounded-[20px] py-[121px]"
+>
+  <span class="mb-[32px] text-[36px]">🔍</span>
+  <h2 class="mb-[16px] text-[32px] font-bold">
+    You don’t have any bookings yet
+  </h2>
+  <span class="mb-[32px] text-[#6B6B6B]"
+    >Start by choosing a coworking space</span
+  >
+  <a
+    [routerLink]="['/']"
+    class="text-[#ffffff] bg-[#5C5AF3] py-[14.5px] px-[24.5px] rounded-lg"
+    >Select a workspace</a
+  >
+</div>

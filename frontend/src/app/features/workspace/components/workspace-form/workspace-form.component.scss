@@ -1,0 +1,21 @@
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .first-form {
+    padding-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .first-form {
+    padding-left: 0;
+    margin-right: 0;
+  }
+  form {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,70 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  &.open {
+    display: flex;
+  }
+}
+
+.dialog-content {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  min-width: 728px;
+  position: relative;
+}
+
+.dialog-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.dialog-link {
+  width: 100%;
+  background-color: #5c5af3;
+  color: white;
+  padding-top: 14.5px;
+  padding-bottom: 14.5px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dialog-icon {
+  display: block;
+  margin-bottom: 32px;
+}
+
+.dialog-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.dialog-message {
+  color: #6b6b6b;
+  margin-bottom: 32px;
+  display: block;
+}
+.dialog-close {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+  .dialog-content {
+    min-width: 0;
+  }
+}

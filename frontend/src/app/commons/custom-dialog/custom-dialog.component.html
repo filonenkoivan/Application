@@ -1,0 +1,23 @@
+<div id="custom-dialog" class="dialog-overlay">
+  <div class="dialog-content">
+    <img
+      class="dialog-icon"
+      [src]="isCorrect ? 'images/icons/correct.svg' : 'images/icons/wrong.svg'"
+    />
+    <h2 class="dialog-title">{{ title }}</h2>
+    <p class="dialog-message">{{ message }}</p>
+
+    <div class="dialog-actions">
+      <button type="button" (click)="closeDialog()" class="dialog-close">
+        <img src="images/icons/cancel.svg" alt="" />
+      </button>
+      <a
+        *ngIf="linkUrl"
+        [routerLink]="['/', linkUrl]"
+        class="dialog-link button-link"
+      >
+        {{ linkText }}
+      </a>
+    </div>
+  </div>
+</div>

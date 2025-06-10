@@ -1,0 +1,177 @@
+<div>
+  <div class="space-y-[24px] mb-[15px]">
+    <div class="bg-white rounded-2xl">
+      <div
+        class="flex p-[16px] items-start container flex-wrap gap-y-[10px] space-between"
+      >
+        <div class="flex w-[100%] flex-wrap row-container items-start">
+          <div class="min-w-0 max-w-[340px] mr-[32px]">
+            <div class="mb-[12px]">
+              <swiper-container thumbs-swiper=".slider--pag">
+                <swiper-slide
+                  *ngFor="let photo of workspace.photoList"
+                  class=""
+                >
+                  <img class="rounded-2xl" [src]="photo" alt="" />
+                </swiper-slide>
+              </swiper-container>
+            </div>
+            <div>
+              <swiper-container
+                slides-per-view="4"
+                mousewheel-force-to-axis="true"
+                space-between="8px"
+                class="slider--pag"
+              >
+                <swiper-slide *ngFor="let photo of workspace.photoList"
+                  ><img class="rounded-lg" [src]="photo" alt=""
+                /></swiper-slide>
+              </swiper-container>
+            </div>
+          </div>
+          <div class="grow">
+            <div>
+              <span
+                class="text-[32px] leading-[1.2] mb-[12px] block font-bold"
+                >{{ workspace.name }}</span
+              >
+              <p
+                class="mb-[32px] max-w-[648px] text-base leading-6 text-[#6B6B6B] mr-[15px] desc"
+              >
+                {{ workspace.description }}
+              </p>
+            </div>
+            <div class="flex benefits">
+              <div class="basis-[50%]">
+                <span class="mb-[12px] block font-semibold">Amenities</span>
+                <ul class="flex space-x-[12px]">
+                  <li
+                    class="rounded-[10px] bg-[#F5F3FB]"
+                    *ngFor="let item of workspace.amenities"
+                  >
+                    <img
+                      class="icon"
+                      src="images/workspaces/icons/{{ item }}.svg"
+                      alt=""
+                    />
+                  </li>
+                </ul>
+              </div>
+
+              <div *ngIf="workspace.availabilityDesks.length > 0">
+                <span class="block mb-[12px] font-semibold">Availability</span>
+                <div class="flex items-center">
+                  <div class="rounded-[12px] bg-[#F5F3FB] p-[10px] mr-[16px]">
+                    <img
+                      class="w-[24px] h-[24px]"
+                      src="images/workspaces/icons/human.svg"
+                      alt=""
+                    />
+                  </div>
+                  <span class="text-[20px] leading-[1.2] font-medium">
+                    {{ workspace.availabilityDesks.length }} desk<span
+                      *ngIf="workspace.availabilityDesks.length > 1"
+                      >s</span
+                    >
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="workspace.capacity != null">
+                <span class="block mb-[12px] font-semibold"
+                  >Capacity options</span
+                >
+                <div class="flex items-center">
+                  <div class="rounded-[12px] bg-[#F5F3FB] p-[10px] mr-[16px]">
+                    <img
+                      class="w-[24px] h-[24px]"
+                      src="images/workspaces/icons/human.svg"
+                      alt=""
+                    />
+                  </div>
+                  <span
+                    class="text-[20px] leading-[1.2] font-medium"
+                    *ngIf="workspace.capacity.length > 2"
+                  >
+                    <span
+                      *ngFor="let item of workspace.capacity; let last = last"
+                      >{{ item }}<span *ngIf="!last">, </span></span
+                    >
+                    people</span
+                  >
+
+                  <span
+                    class="text-[20px] leading-[1.2] font-medium"
+                    *ngIf="workspace.capacity.length <= 2"
+                  >
+                    <span
+                      *ngFor="
+                        let item of workspace.capacity;
+                        index as i;
+                        let last = last
+                      "
+                      >{{ item }}<span *ngIf="!last"> or </span></span
+                    >
+                    people
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              *ngIf="workspace.availabilityRooms.length > 0"
+              class="mt-[32px]"
+            >
+              <span class="block mb-[12px] font-semibold">Availability</span>
+              <ul class="space-y-[12px]">
+                <li
+                  class="text-base text-[#6B6B6B] leading-[1.2]"
+                  *ngFor="let item of workspace.availabilityRooms"
+                >
+                  <span
+                    class="font-semibold text-[#000000]"
+                    *ngIf="item.quantity != 0"
+                  >
+                    {{ item.quantity }} room{{ item.quantity > 1 ? "s" : "" }}
+                  </span>
+                  <span
+                    class="font-regular text-[#6B6B6B]"
+                    *ngIf="item.quantity != 0"
+                  >
+                    for {{ item.capacity }} people{{
+                      item.capacity > 1 ? "s" : ""
+                    }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <button
+            (click)="goToBooking()"
+            class="bg-[#5C5AF3] cursor-pointer text-[#ffffff] text-base py-[14.5px] px-[52px] rounded-lg"
+          >
+            Book now
+          </button>
+        </div>
+        <div
+          *ngIf="bookingExistsResponse?.exists === true"
+          class="mt-[10px] rounded-[8px] bg-[#EAF7EE] pt-[10px] pb-[10px] pl-[16px] pr-[16px] flex ml-[auto]"
+        >
+          <img
+            src="images/icons/correct.svg"
+            alt=""
+            class="block mr-[8px] w-[24px] h-[24px]"
+          />
+          <p>
+            This workspace is already booked by you!
+            {{ bookingExistsResponse?.type ?? "" }} for
+            {{ bookingExistsResponse?.capacity ?? 0 }} people
+            <span *ngIf="(bookingExistsResponse?.capacity ?? 0) > 1">s</span>
+            <strong>{{ bookingExistsResponse?.startDate ?? "" }}</strong>
+            <strong> to </strong>
+            <strong>{{ bookingExistsResponse?.endDate ?? "" }}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
