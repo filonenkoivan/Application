@@ -27,9 +27,11 @@ namespace Co_Woring.Application.Interfaces
         Task<List<DeskDTO>> GetDesksByType(WorkSpaceType type);
         Task UpdateAsync(Booking booking);
         Task<Booking> GetBookingEntityAsync(int id);
-        Task RevertAvailabilityAsync(Booking booking);
         Task DecreaseAvailabilityAsync(Booking booking);
         Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity);
         Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId);
+
+        Task<bool> ExistsBookingWithSessionIdAndWorkspaceTypeAsync(int sessionId, WorkSpaceType workSpaceType);
+        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id);
     }
 }

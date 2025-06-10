@@ -26,5 +26,6 @@ namespace Co_Woring.Application.Interfaces
         Task<(bool Success, string Message)> UpdateAsync(int id, BookingRequest request);
         Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity);
         Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId);
+        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id);
     }
 }

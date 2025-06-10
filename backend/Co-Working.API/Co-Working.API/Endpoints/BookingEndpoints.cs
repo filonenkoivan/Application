@@ -37,6 +37,8 @@ namespace Co_Working.API.Endpoints
             builder.MapGet("/bookings/available", GetBookingsRooms);
 
             builder.MapGet("/bookings/desk/{id}", GetBookingsDesks);
+
+            builder.MapGet("/bookings/exists", CheckBookingExists);
         }
 
         public async static Task<IResult> CreateBooking(BookingRequest request, IBookingServices services)
@@ -87,7 +89,7 @@ namespace Co_Working.API.Endpoints
                 : Results.BadRequest(new Response<string>(ApiStatusCode.BadRequest, result.Message, "Please choose a different time slot"));
 
         }
-        /////////////////
+
         public async static Task<Response<List<WorkspaceResponse>>> GetWorkspaces(IBookingServices services)
         {
             List<WorkspaceResponse> result = await services.GetWorkspacesAsync();
@@ -110,6 +112,14 @@ namespace Co_Working.API.Endpoints
         public async static Task<Response<List<BookingAvailableResponse>>> GetBookingsDesks(int id, IBookingServices services)
         {
             return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsDesks(id));
+        }
+
+        public async static Task<BookingExistsResponse> CheckBookingExists([FromQuery] WorkSpaceType workspaceId, int sessionId, IBookingServices services)
+        {
+            var booking = await services.GetBookingByWorkspaceAndSessionIdAsync(workspaceId, sessionId);
+
+
+            return booking;
         }
     }
 }

@@ -1,6 +1,7 @@
 using Co_Woring.Application.Interfaces;
 using Co_Woring.Application.Services;
 using Co_Working.API.Endpoints;
+using Co_Working.API.Middleware;
 using Co_Working.Persistence;
 using Co_Working.Persistence.Repository;
 using DotNetEnv;
@@ -14,7 +15,7 @@ var dbName = Environment.GetEnvironmentVariable("DB_NAME");
 var user = Environment.GetEnvironmentVariable("DB_USER");
 var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
-var connectionString = $"Host={host};Port={port};Database={dbName};Username={user};Password={password}";
+var connectionString = $"Server=localhost;Port=5432;Database=cowork;User Id=postgres;Password=dbpass";
 
 
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
@@ -26,12 +27,17 @@ builder.Services.AddCors(opt => opt.AddPolicy("angular", policy =>
     policy.AllowCredentials();
     policy.AllowAnyHeader();
 }));
+builder.Services.AddMvcCore().AddApiExplorer();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(connectionString)
 );
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddSwaggerGen();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5086);
+});
 
 var app = builder.Build();
 
@@ -48,6 +54,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
     DbSeeder.Seed(db);
 }
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("angular");
 app.Run();
 

@@ -64,7 +64,6 @@ namespace Co_Woring.Application.Services
             if (existingBooking == null)
                 return (false, "Booking not found");
 
-            await repository.RevertAvailabilityAsync(existingBooking);
 
             var validation = await ValidateBookingRequest(request, excludeBookingId: id);
             if (!validation.Success)
@@ -120,8 +119,8 @@ namespace Co_Woring.Application.Services
         private async Task<(bool Success, string Message, IBookable bookable, DateTime Start, DateTime End)>
         ValidateBookingRequest(BookingRequest request, int? excludeBookingId = null)
         {
-            var startDateTime = request.StartDate + request.StartTime;
-            var endDateTime = request.EndDate + request.EndTime;
+            var startDateTime = request.StartDate.Date + request.StartTime;
+            var endDateTime = request.EndDate.Date + request.EndTime;
 
             var room = await repository.GetBookableByWorkspaceAndCapacity(request.WorkSpaceType, request.RoomCapacity, request.DeskNumber);
 
@@ -135,13 +134,24 @@ namespace Co_Woring.Application.Services
             bool overlapping = await repository.IsTimeOverlappingAsync(
                 startDateTime, endDateTime,
                 request.RoomCapacity, request.WorkSpaceType,
-                request.DeskNumber // додаємо це!
+                request.DeskNumber
             );
 
             if (overlapping)
             {
                 return (false, "Selected time is not available.", null, startDateTime, endDateTime);
             }
+
+            bool alreadyBooked = await repository.ExistsBookingWithSessionIdAndWorkspaceTypeAsync(
+            request.SessionId,
+            request.WorkSpaceType);
+
+            if (alreadyBooked)
+            {
+                return (false, "You have already booked this type of workspace", null, startDateTime, endDateTime);
+            }
+
+
 
             return (true, "Valid", room, startDateTime, endDateTime);
         }
@@ -174,5 +184,16 @@ namespace Co_Woring.Application.Services
         {
             return await repository.GetDesksByType(type);
         }
+
+        public async Task<List<DeskDTO>> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type)
+        {
+            return await repository.GetDesksByType(type);
+        }
+
+        public async Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id)
+        {
+            return await repository.GetBookingByWorkspaceAndSessionIdAsync(type, id);
+        }
     }
 }
+
