@@ -93,7 +93,7 @@ namespace Co_Working.Persistence
                     StartDateTime = DateTime.UtcNow.AddDays(18),
                     EndDateTime = DateTime.UtcNow.AddDays(20),
                     DeskNumber = 6,
-                    WorkSpaceType = WorkSpaceType.MeetingRoom,
+                    WorkSpaceType = WorkSpaceType.OpenSpace,
                     Id = 2,
                     DeskId = 6
                 });
