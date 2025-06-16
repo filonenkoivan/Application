@@ -27,8 +27,13 @@ import { CustomDialogComponent } from '../../../../commons/custom-dialog/custom-
 export class WorkspaceFormComponent implements OnInit {
   bookingId: number | null = null;
   coworkingId: number | null = null;
+  //time
   defaultStartTimeValue: string = '';
   defaultEndTimeValue: string = '';
+  //date
+  defaultStartDateValue: string = '';
+  defaultEndDateValue: string = '';
+
   bookingForm: FormGroup;
   rooms = signal<RoomDTO[]>([]);
   desks = signal<DeskDTO[]>([]);
@@ -196,10 +201,8 @@ export class WorkspaceFormComponent implements OnInit {
         { emitEvent: false }
       );
 
-      console.log('START TIME ' + this.bookingForm.value.startTime);
       const isUpdateMode = !!this.route.snapshot.paramMap.get('id');
       const isDefaultTime = this.bookingForm.value.startTime === '08:00';
-      //ось тут баг, значення приходить але не ставиться // END TIME теж
       if (isUpdateMode && isDefaultTime && !this.isFormInitialized) {
         this.bookingForm.patchValue({
           startTime: this.defaultStartTimeValue,
@@ -488,7 +491,19 @@ export class WorkspaceFormComponent implements OnInit {
           this.defaultEndTimeValue = endTime;
           this.coworkingId = booking.coworkingId;
 
-          console.log(booking);
+          const startDate = booking.startDate.split('T')[0];
+          const endDate = booking.startDate.split('T')[0];
+
+          // this.defaultStartDateValue = startDate;
+          // this.defaultEndDateValue = endDate;
+
+          this.defaultStartDateValue = booking.startDate;
+          this.defaultEndDateValue = booking.endDate;
+
+          this.bookingForm.patchValue({
+            startDate: booking.startDate,
+            endDate: booking.endDate,
+          });
         });
       },
       error: (err) => {

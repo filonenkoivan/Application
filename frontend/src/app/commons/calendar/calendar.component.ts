@@ -39,6 +39,9 @@ import { ActivatedRoute } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent {
+  @Input() defaultStartDateValue: string = '';
+  @Input() defaultEndDateValue: string = '';
+
   @Input() defaultStartTimeValue: string = '';
   @Input() defaultEndTimeValue: string = '';
 
@@ -57,6 +60,25 @@ export class CalendarComponent {
     this.generateTimeOptions();
   }
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['defaultStartDateValue'] && this.defaultStartDateValue) {
+      const parsed = new Date(this.defaultStartDateValue);
+
+      if (!isNaN(parsed.getTime())) {
+        this.startDate = parsed;
+        this.onStartDateSelected(parsed);
+      }
+      this.defaultStartDateValue = '';
+    }
+
+    if (changes['defaultEndDateValue'] && this.defaultEndDateValue) {
+      const parsed = new Date(this.defaultEndDateValue);
+      if (!isNaN(parsed.getTime())) {
+        this.endDate = parsed;
+        this.onEndDateSelected(parsed);
+      }
+      this.defaultEndDateValue = '';
+    }
+
     if (changes['startDateTime']) {
       if (this.isStartUpdated) {
         this.defaultStartTimeValue = '';
@@ -224,10 +246,12 @@ export class CalendarComponent {
     if (!date) return;
 
     this.startDate = date;
-
     this.startTime = '08:00';
 
-    this.emitStartDateTime();
+    console.log('starttime = ' + this.startTime);
+    if (!this.defaultStartDateValue) {
+      this.emitStartDateTime();
+    }
 
     if (this.workspaceType === '3') {
       this.endDate = date;
@@ -248,7 +272,6 @@ export class CalendarComponent {
       const [hour, minute] = this.startTime.split(':').map(Number);
       const dt = new Date(date);
       dt.setHours(hour, minute, 0, 0);
-      console.log(this.startTime);
       this.startDateTimeChange.emit(dt);
     } else {
       this.startDateTimeChange.emit(null);
@@ -266,8 +289,9 @@ export class CalendarComponent {
     if (!this.endTime) {
       this.endTime = '08:00';
     }
-
-    this.emitEndDateTime();
+    if (!this.defaultEndDateValue) {
+      this.emitEndDateTime();
+    }
   }
 
   onEndTimeChanged(time: string) {
@@ -314,21 +338,3 @@ export class CalendarComponent {
   }
   minDate: Date = new Date();
 }
-
-// private emitEndDateTime() {
-//   if (!this.endDate) {
-//     this.endDateTimeChange.emit(null);
-//     return;
-//   }
-
-//   const date = new Date(this.endDate);
-
-//   if (this.endTime) {
-//     const [hour, minute] = this.endTime.split(':').map(Number);
-//     date.setHours(hour, minute, 0, 0);
-//   } else {
-//     date.setHours(8, 0, 0, 0); // дефолтний час
-//   }
-
-//   this.endDateTimeChange.emit(date);
-// }

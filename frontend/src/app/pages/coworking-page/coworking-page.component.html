@@ -1,4 +1,4 @@
-<h1 class="title">Available coworking spaces</h1>
+<h1 class="title pt-[32px]">Available coworking spaces</h1>
 <p>Browse and choose a workspace that fits your needs</p>
 
 <app-coworking-card
@@ -6,3 +6,21 @@
   [coworking]="coworking"
 >
 </app-coworking-card>
+
+<div
+  *ngIf="coworkings.length === 0"
+  class="flex column flex-col w-[100%] items-center justify-center bg-[#ffffff] rounded-[20px] py-[121px]"
+>
+  <span class="mb-[32px] text-[36px]">‍👨‍💻‍</span>
+  <h2 class="mb-[16px] text-[32px] font-bold">
+    No coworking spaces available at the moment
+  </h2>
+  <span class="mb-[32px] text-[#6B6B6B]"
+    >Please check back later or try adjusting your filters</span
+  >
+  <a
+    [routerLink]="['/']"
+    class="text-[#ffffff] bg-[#5C5AF3] py-[14.5px] px-[24.5px] rounded-lg"
+    >Refresh</a
+  >
+</div>

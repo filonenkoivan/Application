@@ -3,10 +3,11 @@ import { CoworkingDTO } from '../../models/coworking-card-model';
 import { CoworkingServices } from '../../services/coworking-service';
 import { CoworkingCardComponent } from '../../features/workspace/components/coworking-card/coworking-card.component';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-coworking-page',
-  imports: [CoworkingCardComponent, CommonModule],
+  imports: [CoworkingCardComponent, CommonModule, RouterModule],
   templateUrl: './coworking-page.component.html',
   styleUrl: './coworking-page.component.scss',
 })
