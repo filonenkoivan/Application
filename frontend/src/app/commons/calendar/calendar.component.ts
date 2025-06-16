@@ -249,9 +249,7 @@ export class CalendarComponent {
     this.startTime = '08:00';
 
     console.log('starttime = ' + this.startTime);
-    if (!this.defaultStartDateValue) {
-      this.emitStartDateTime();
-    }
+    this.emitStartDateTime();
 
     if (this.workspaceType === '3') {
       this.endDate = date;
@@ -289,9 +287,7 @@ export class CalendarComponent {
     if (!this.endTime) {
       this.endTime = '08:00';
     }
-    if (!this.defaultEndDateValue) {
-      this.emitEndDateTime();
-    }
+    this.emitEndDateTime();
   }
 
   onEndTimeChanged(time: string) {
