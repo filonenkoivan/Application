@@ -487,6 +487,8 @@ export class WorkspaceFormComponent implements OnInit {
           this.defaultStartTimeValue = startTime;
           this.defaultEndTimeValue = endTime;
           this.coworkingId = booking.coworkingId;
+
+          console.log(booking);
         });
       },
       error: (err) => {

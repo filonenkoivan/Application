@@ -327,31 +327,6 @@ namespace Co_Working.Persistence
                 context.SaveChanges();
             }
 
-            if (!context.Bookings.Any())
-            {
-                context.AddRange(new Booking
-                {
-                    Name = "Ivan",
-                    Email = "email@gmail.com",
-                    StartDateTime = DateTime.UtcNow.AddDays(2),
-                    EndDateTime = DateTime.UtcNow.AddDays(4),
-                    RoomCapacity = 10,
-                    WorkSpaceType = WorkSpaceType.MeetingRoom,
-                    Id = 1,
-                    RoomId = 2
-                }, new Booking
-                {
-                    Name = "Ivan",
-                    Email = "email@gmail.com",
-                    StartDateTime = DateTime.UtcNow.AddDays(18),
-                    EndDateTime = DateTime.UtcNow.AddDays(20),
-                    DeskNumber = 6,
-                    WorkSpaceType = WorkSpaceType.OpenSpace,
-                    Id = 2,
-                    DeskId = 6
-                });
-                context.SaveChanges();
-            }
         }
     }
 }

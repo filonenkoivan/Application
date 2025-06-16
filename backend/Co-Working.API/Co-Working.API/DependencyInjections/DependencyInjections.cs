@@ -11,7 +11,7 @@ namespace Co_Working.API.DependencyInjections
     {
         public static void AddDependencies(this WebApplicationBuilder builder)
         {
-            var connectionString = $"Server=localhost;Port=5432;Database=cowork;User Id=postgres;Password=dbpass";
+            var connectionString = $"Server=postgres;Port=5432;Database=cowork;User Id=postgres;Password=dbpass";
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IBookingServices, BookingService>();
             builder.Services.AddScoped<ICoworkingRepository, CoworkingRepository>();
