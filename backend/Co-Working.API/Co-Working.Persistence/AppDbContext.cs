@@ -9,8 +9,8 @@ namespace Co_Working.Persistence
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Workspace> Workspace { get; set; }
         public DbSet<Room> Rooms { get; set; }
-
         public DbSet<Desk> Desks { get; set; }
+        public DbSet<Coworking> Coworkings { get; set; }
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
             Database.EnsureCreated();

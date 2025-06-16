@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { BookingService } from '../../../../services/booking-service';
-import { DeskDTO, RoomDTO } from '../../../../models/workspace-card-module';
+import { DeskDTO, RoomDTO } from '../../../../models/workspace-card-model';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CustomSelectComponent } from '../../../../commons/custom-select/custom-select.component';
@@ -26,6 +26,9 @@ import { CustomDialogComponent } from '../../../../commons/custom-dialog/custom-
 })
 export class WorkspaceFormComponent implements OnInit {
   bookingId: number | null = null;
+  coworkingId: number | null = null;
+  defaultStartTimeValue: string = '';
+  defaultEndTimeValue: string = '';
   bookingForm: FormGroup;
   rooms = signal<RoomDTO[]>([]);
   desks = signal<DeskDTO[]>([]);
@@ -84,6 +87,14 @@ export class WorkspaceFormComponent implements OnInit {
 
       this.bookingForm.get('desk')?.updateValueAndValidity();
       this.bookingForm.get('roomSize')?.updateValueAndValidity();
+
+      this.bookingForm.patchValue({
+        roomSize: '',
+        startDateTime: null,
+        endDateTime: null,
+        startTime: '08:00',
+        endTime: '08:00',
+      });
     });
 
     this.bookingForm.get('roomSize')?.valueChanges.subscribe((sizeStr) => {
@@ -96,6 +107,8 @@ export class WorkspaceFormComponent implements OnInit {
       this.bookingForm.patchValue({
         startDateTime: null,
         endDateTime: null,
+        startTime: '08:00',
+        endTime: '08:00',
       });
     });
     this.bookingForm.get('desk')?.valueChanges.subscribe((deskIdStr) => {
@@ -109,6 +122,8 @@ export class WorkspaceFormComponent implements OnInit {
       this.bookingForm.patchValue({
         startDateTime: null,
         endDateTime: null,
+        startTime: '08:00',
+        endTime: '08:00',
       });
     });
   }
@@ -122,7 +137,10 @@ export class WorkspaceFormComponent implements OnInit {
     return 30;
   }
   loadBookingForDesk(deskId: number) {
-    this.bookingService.getBookingsByDesk(deskId).subscribe({
+    const coworkingId = Number(
+      this.route.snapshot.queryParamMap.get('coworkingId')
+    );
+    this.bookingService.getBookingsByDesk(deskId, coworkingId).subscribe({
       next: (response) => {
         const bookings = response.data;
 
@@ -154,10 +172,12 @@ export class WorkspaceFormComponent implements OnInit {
       startTime: this.startTime,
       endTime: this.endTime,
     });
+    this.isFormInitialized = true;
   }
+
+  isFormInitialized = false;
   onCalendarStartDateTimeChange(dateTime: Date | null) {
     this.formStartDateTime = dateTime;
-
     if (this.formStartDateTime) {
       const formattedTime = this.formatTime(this.formStartDateTime);
 
@@ -175,6 +195,16 @@ export class WorkspaceFormComponent implements OnInit {
         },
         { emitEvent: false }
       );
+
+      console.log('START TIME ' + this.bookingForm.value.startTime);
+      const isUpdateMode = !!this.route.snapshot.paramMap.get('id');
+      const isDefaultTime = this.bookingForm.value.startTime === '08:00';
+      //ось тут баг, значення приходить але не ставиться // END TIME теж
+      if (isUpdateMode && isDefaultTime && !this.isFormInitialized) {
+        this.bookingForm.patchValue({
+          startTime: this.defaultStartTimeValue,
+        });
+      }
     } else {
       this.bookingForm.patchValue(
         {
@@ -188,7 +218,6 @@ export class WorkspaceFormComponent implements OnInit {
 
   onCalendarEndDateTimeChange(dateTime: Date | null) {
     this.formEndDateTime = dateTime;
-
     if (this.formEndDateTime) {
       const formattedTime = this.formatTime(this.formEndDateTime);
 
@@ -206,33 +235,19 @@ export class WorkspaceFormComponent implements OnInit {
         },
         { emitEvent: false }
       );
+      const isUpdateMode = !!this.route.snapshot.paramMap.get('id');
+      const isDefaultTime = this.bookingForm.value.endTime === '08:00';
+
+      if (isUpdateMode && isDefaultTime && !this.isFormInitialized) {
+        this.bookingForm.patchValue({
+          endTime: this.defaultEndTimeValue,
+        });
+      }
     } else {
       this.bookingForm.patchValue(
         {
           endDate: null,
           endTime: null,
-        },
-        { emitEvent: false }
-      );
-    }
-  }
-
-  private updateFormBookingDates() {
-    if (this.formStartDateTime) {
-      this.bookingForm.patchValue(
-        {
-          startDate: new Date(this.formStartDateTime),
-          startTime: this.formatTime(this.formStartDateTime),
-        },
-        { emitEvent: false }
-      );
-    }
-
-    if (this.formEndDateTime) {
-      this.bookingForm.patchValue(
-        {
-          endDate: new Date(this.formEndDateTime),
-          endTime: this.formatTime(this.formEndDateTime),
         },
         { emitEvent: false }
       );
@@ -271,20 +286,24 @@ export class WorkspaceFormComponent implements OnInit {
   }
 
   loadBookingRoomsByType(type: number, capacity: number) {
-    this.bookingService.getBookingsByType(type, capacity).subscribe({
-      next: (response) => {
-        const bookings = response.data;
+    const cowokringId = Number(
+      this.route.snapshot.queryParamMap.get('coworkingId')
+    );
+    this.bookingService
+      .getBookingsByType(type, capacity, cowokringId)
+      .subscribe({
+        next: (response) => {
+          const bookings = response.data;
+          const allSlots: BlockedSlotPerDay[] = [];
 
-        const allSlots: BlockedSlotPerDay[] = [];
+          bookings.forEach((booking) => {
+            const slots = this.generateBlockedSlotsPerDay(booking);
+            allSlots.push(...slots);
+          });
 
-        bookings.forEach((booking) => {
-          const slots = this.generateBlockedSlotsPerDay(booking);
-          allSlots.push(...slots);
-        });
-
-        this.blockedSlotsPerDay = allSlots;
-      },
-    });
+          this.blockedSlotsPerDay = allSlots;
+        },
+      });
   }
   getCookie(name: string): string | null {
     const match = document.cookie.match(
@@ -313,7 +332,12 @@ export class WorkspaceFormComponent implements OnInit {
     endDateTime.setHours(endHour, endMinute, 0, 0);
 
     const startTimeSpan = formValue.startTime + ':00';
+
     const endTimeSpan = formValue.endTime + ':00';
+
+    const coworking = Number(
+      this.route.snapshot.queryParamMap.get('coworkingId')
+    );
 
     const payload = {
       name: formValue.name,
@@ -326,10 +350,13 @@ export class WorkspaceFormComponent implements OnInit {
       startTime: startTimeSpan,
       endTime: endTimeSpan,
       sessionId: sessionId,
+      coworkingId: coworking,
     };
 
-    if (this.bookingId) {
-      this.bookingService.updateBooking(this.bookingId, payload).subscribe({
+    const bookingId = Number(this.route.snapshot.paramMap.get('id'));
+    if (bookingId) {
+      payload.coworkingId = Number(this.coworkingId);
+      this.bookingService.updateBooking(bookingId, payload).subscribe({
         next: (response) => {
           const message = response?.message;
           this.dialogTitle = "You're all set!";
@@ -446,21 +473,20 @@ export class WorkspaceFormComponent implements OnInit {
             booking.roomCapacity
           );
 
-          const bookingStartDateOnly = booking.startDate.split('T')[0];
-          const bookingEndDateOnly = booking.endDate.split('T')[0];
-
-          const startTime = booking.startTime;
-          const endTime = booking.endTime;
-
-          const startDateTime = new Date(
-            `${booking.startDate}T${booking.startTime}`
-          );
-          const endDateTime = new Date(`${booking.endDate}T${booking.endTime}`);
+          const startTime = booking.startTime.slice(0, 5);
+          const endTime = booking.endTime.slice(0, 5);
 
           this.bookingForm.patchValue({
-            startDateTime,
-            endDateTime,
+            startTime: startTime,
+            endTime: endTime,
           });
+
+          this.bookingForm.value.startTime = startTime;
+          this.bookingForm.value.endTime = endTime;
+
+          this.defaultStartTimeValue = startTime;
+          this.defaultEndTimeValue = endTime;
+          this.coworkingId = booking.coworkingId;
         });
       },
       error: (err) => {
@@ -497,7 +523,7 @@ export class WorkspaceFormComponent implements OnInit {
     endDateOnly.setHours(0, 0, 0, 0);
 
     while (currentDate <= endDateOnly) {
-      const dateStr = currentDate.toISOString().split('T')[0];
+      const dateStr = startDate.toISOString().split('T')[0];
 
       slots.push({
         date: dateStr,

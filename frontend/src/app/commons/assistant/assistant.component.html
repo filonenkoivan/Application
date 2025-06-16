@@ -1,0 +1,45 @@
+<h1 class="text-[32px] mb-[44px] font-bold assistant-title">Ai assistant</h1>
+<div
+  *ngIf="assistResponse"
+  [innerHTML]="assistResponse"
+  class="assistant-response bg-[#ffffff] p-[24px] mb-[44px] rounded-[8px]"
+></div>
+<span class="text-[24px] mb-[24px] block font-bold">{{
+  assistResponse ? "Ask something else" : "Example options"
+}}</span>
+<ul
+  class="flex flex-wrap gap-x-[16px] gap-y-[16px] mb-[44px] assistant-content"
+>
+  <li
+    (click)="sendExample($event)"
+    class="py-[12px] px-[16px] rounded-[4px] border-[#5C5AF3] border-[1px] text-[#5C5AF3] bg-[#EDF0FF] cursor-pointer"
+  >
+    How many bookings do I have?
+  </li>
+  <li
+    (click)="sendExample($event)"
+    class="py-[12px] px-[16px] rounded-[4px] border-[#5C5AF3] border-[1px] text-[#5C5AF3] bg-[#EDF0FF] cursor-pointer"
+  >
+    What was booked last week?
+  </li>
+  <li
+    (click)="sendExample($event)"
+    class="py-[12px] px-[16px] rounded-[4px] border-[#5C5AF3] border-[1px] text-[#5C5AF3] bg-[#EDF0FF] cursor-pointer"
+  >
+    Do I have anything on May 18?
+  </li>
+</ul>
+<form class="relative">
+  <input
+    [(ngModel)]="inputValue"
+    placeholder="Ask anything..."
+    class="bg-[#ffffff] px-[16px] border-[1px] border-[#C2BCD8] w-[100%] rounded-[8px] h-[64px]"
+    name="inputValue"
+  />
+  <button
+    (click)="sendMessageToAssitant()"
+    class="absolute right-[16px] top-[10px]"
+  >
+    <img src="images/icons/send.svg" alt="" />
+  </button>
+</form>

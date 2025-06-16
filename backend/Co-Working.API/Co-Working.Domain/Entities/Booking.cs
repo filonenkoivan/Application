@@ -20,7 +20,7 @@ namespace Co_Working.Domain.Entities
         public int SessionId { get; set; }
         public int RoomCapacity { get; set; }
         public int DeskNumber { get; set; }
-
+        public int CoworkingId { get; set; }
 
 
         public int? DeskId { get; set; }

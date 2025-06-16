@@ -22,7 +22,7 @@ namespace Co_Working.API.Validation
 
             var startDate = request.StartTime;
             var endDate = request.EndTime;
-            if (startDate > endDate)
+            if (startDate > endDate || request.StartDate.Date > request.EndDate.Date)
             {
                 validationErrors.Add("StartTime", new[] { "The start of the booking must be earlier than the end" });
             }
@@ -36,7 +36,7 @@ namespace Co_Working.API.Validation
             }
             if (
                 (request.WorkSpaceType == WorkSpaceType.OpenSpace || request.WorkSpaceType == WorkSpaceType.PrivateRoom)
-                    && (request.EndDate - request.StartDate).TotalDays > 30)
+                    && Math.Round((request.EndDate - request.StartDate).TotalDays) > 30)
             {
                 validationErrors.Add("Desk", new[] { "Open space can be booked for no more than 30 days" });
             }
@@ -45,7 +45,10 @@ namespace Co_Working.API.Validation
             {
                 validationErrors.Add("Desk", new[] { "Meetings room can be booked for 1 day" });
             }
-
+            if (request.StartTime == request.EndTime)
+            {
+                validationErrors.Add("Time", new[] { "You can't select the same start and end time." });
+            }
             return validationErrors;
         }
     }

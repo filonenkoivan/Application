@@ -35,7 +35,8 @@ namespace Co_Woring.Application.Services
                 SessionId = request.SessionId,
                 WorkSpaceType = request.WorkSpaceType,
                 RoomCapacity = request.RoomCapacity,
-                DeskNumber = request.DeskNumber
+                DeskNumber = request.DeskNumber,
+                CoworkingId = request.CoworkingId
             };
 
             if (validation.bookable is Desk)
@@ -91,7 +92,6 @@ namespace Co_Woring.Application.Services
             existingBooking.WorkSpaceType = request.WorkSpaceType;
 
             await repository.UpdateAsync(existingBooking);
-            await repository.DecreaseAvailabilityAsync(existingBooking);
 
             var message = existingBooking.RoomCapacity == 0
                 ? $"Your desk is booked from "
@@ -117,7 +117,7 @@ namespace Co_Woring.Application.Services
             }
         }
         private async Task<(bool Success, string Message, IBookable bookable, DateTime Start, DateTime End)>
-        ValidateBookingRequest(BookingRequest request, int? excludeBookingId = null)
+        ValidateBookingRequest(BookingRequest request, bool isUpdate = false, int? excludeBookingId = null)
         {
             var startDateTime = request.StartDate.Date + request.StartTime;
             var endDateTime = request.EndDate.Date + request.EndTime;
@@ -134,7 +134,8 @@ namespace Co_Woring.Application.Services
             bool overlapping = await repository.IsTimeOverlappingAsync(
                 startDateTime, endDateTime,
                 request.RoomCapacity, request.WorkSpaceType,
-                request.DeskNumber
+                deskNumber: request.DeskNumber,
+                coworkingId: request.CoworkingId
             );
 
             if (overlapping)
@@ -142,9 +143,21 @@ namespace Co_Woring.Application.Services
                 return (false, "Selected time is not available.", null, startDateTime, endDateTime);
             }
 
-            bool alreadyBooked = await repository.ExistsBookingWithSessionIdAndWorkspaceTypeAsync(
-            request.SessionId,
-            request.WorkSpaceType);
+            bool alreadyBooked = false;
+
+            if (excludeBookingId != 0)
+            {
+                alreadyBooked = await repository.ExistsBookingWithSessionIdAndWorkspaceTypeAsync(
+                request.SessionId,
+                request.WorkSpaceType, request.CoworkingId, excludeBookingId);
+            }
+            else
+            {
+                alreadyBooked = await repository.ExistsBookingWithSessionIdAndWorkspaceTypeAsync(
+                request.SessionId,
+                request.WorkSpaceType, request.CoworkingId);
+            }
+
 
             if (alreadyBooked)
             {
@@ -156,25 +169,21 @@ namespace Co_Woring.Application.Services
             return (true, "Valid", room, startDateTime, endDateTime);
         }
 
-        public async Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity)
+        public async Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity, int coworkingId)
         {
-            return await repository.GetBookingsByType(type, capacity);
+            return await repository.GetBookingsByType(type, capacity, coworkingId);
         }
-        public async Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId)
+        public async Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId, int coworkingId)
         {
-            return await repository.GetBookingsDesks(deskId);
+            return await repository.GetBookingsDesks(deskId, coworkingId);
         }
-        public async Task<List<BookingResponse>> GetBookings()
+        public async Task<List<BookingResponse>> GetBookings(int id)
         {
-            return await repository.GetBookingsAsync();
+            return await repository.GetBookingsAsync(id);
         }
         public async Task<BookingResponse> GetBookingAsync(int id)
         {
             return await repository.GetBookingAsync(id);
-        }
-        public async Task<List<WorkspaceResponse>> GetWorkspacesAsync()
-        {
-            return await repository.GetWorkspacesAsync();
         }
         public async Task<List<RoomDTO>> GetRoomsByType(WorkSpaceType type)
         {
@@ -190,9 +199,9 @@ namespace Co_Woring.Application.Services
             return await repository.GetDesksByType(type);
         }
 
-        public async Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id)
+        public async Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id, int coworkingId)
         {
-            return await repository.GetBookingByWorkspaceAndSessionIdAsync(type, id);
+            return await repository.GetBookingByWorkspaceAndSessionIdAsync(type, id, coworkingId);
         }
     }
 }

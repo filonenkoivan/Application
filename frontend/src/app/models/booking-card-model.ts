@@ -10,6 +10,7 @@ export interface Booking {
   roomCapacity: number;
   deskNumber: number;
   sessionId: number;
+  coworkingId: number;
 }
 
 export interface BookingResponse {

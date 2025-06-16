@@ -5,10 +5,11 @@ import { BookingService } from '../../services/booking-service';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { AssistantComponent } from '../../commons/assistant/assistant.component';
 
 @Component({
   selector: 'app-booking-page',
-  imports: [CommonModule, BookingComponent, RouterModule],
+  imports: [CommonModule, BookingComponent, RouterModule, AssistantComponent],
   templateUrl: './booking-page.component.html',
   styleUrl: './booking-page.component.scss',
 })

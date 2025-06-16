@@ -17,9 +17,8 @@ namespace Co_Woring.Application.Interfaces
     public interface IBookingRepository
     {
         Task<Booking> AddAsync(Booking booking);
-        Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, int roomCapacity, WorkSpaceType workSpaceType, int deskNumber);
-        Task<List<WorkspaceResponse>> GetWorkspacesAsync();
-        Task<List<BookingResponse>> GetBookingsAsync();
+        Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, int roomCapacity, WorkSpaceType workSpaceType, int coworkingId, int deskNumber);
+        Task<List<BookingResponse>> GetBookingsAsync(int id);
         Task<bool> DeleteBooking(int id);
         Task<IBookable> GetBookableByWorkspaceAndCapacity(WorkSpaceType type, int capacity, int deskNumber);
         Task<BookingResponse> GetBookingAsync(int id);
@@ -28,10 +27,12 @@ namespace Co_Woring.Application.Interfaces
         Task UpdateAsync(Booking booking);
         Task<Booking> GetBookingEntityAsync(int id);
         Task DecreaseAvailabilityAsync(Booking booking);
-        Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity);
-        Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId);
+        Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity, int cowokringId);
+        Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId, int cowokringId);
 
-        Task<bool> ExistsBookingWithSessionIdAndWorkspaceTypeAsync(int sessionId, WorkSpaceType workSpaceType);
-        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id);
+        Task<bool> ExistsBookingWithSessionIdAndWorkspaceTypeAsync(int sessionId, WorkSpaceType workSpaceType, int coworkingId, int? excludeBookingId = null);
+        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id, int coworkingId);
+
+        Task<List<BookingAssistantResponse>> GetBookingsForAssitant(int id);
     }
 }

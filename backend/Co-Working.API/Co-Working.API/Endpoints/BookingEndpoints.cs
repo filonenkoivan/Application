@@ -1,6 +1,7 @@
 ﻿using Co_Woring.Application.DTOs;
 using Co_Woring.Application.DTOs.Booking;
 using Co_Woring.Application.DTOs.Bookings;
+using Co_Woring.Application.DTOs.Coworking;
 using Co_Woring.Application.DTOs.Enums;
 using Co_Woring.Application.DTOs.Rooms;
 using Co_Woring.Application.DTOs.Workspaces;
@@ -20,27 +21,27 @@ namespace Co_Working.API.Endpoints
     {
         public static void MapBookingEndpoints(this IEndpointRouteBuilder builder)
         {
-            builder.MapPost("/bookings", CreateBooking);
+            var bookings = builder.MapGroup("/bookings");
 
-            builder.MapGet("/bookings", GetBookings);
+            bookings.MapPost("", CreateBooking);
 
-            builder.MapDelete("/bookings/{id}", DeleteBooking);
+            bookings.MapGet("/all", GetBookings);
 
-            builder.MapGet("/bookings/{id}", GetBooking);
+            bookings.MapDelete("/{id}", DeleteBooking);
 
-            builder.MapPut("/bookings/{id}", UpdateBooking);
+            bookings.MapGet("/{id}", GetBooking);
+
+            bookings.MapPut("/{id}", UpdateBooking);
 
 
-            builder.MapGet("/workspaces", GetWorkspaces);
+            bookings.MapGet("/rooms", GetRoomsByType);
 
+            bookings.MapGet("/available", GetBookingsRooms);
 
-            builder.MapGet("/bookings/rooms", GetRoomsByType);
+            bookings.MapGet("/desk/{id}", GetBookingsDesks);
 
-            builder.MapGet("/bookings/available", GetBookingsRooms);
+            bookings.MapGet("/exists", CheckBookingExists);
 
-            builder.MapGet("/bookings/desk/{id}", GetBookingsDesks);
-
-            builder.MapGet("/bookings/exists", CheckBookingExists);
         }
 
         public async static Task<IResult> CreateBooking(BookingRequest request, IBookingServices services)
@@ -62,9 +63,11 @@ namespace Co_Working.API.Endpoints
                 ? Results.Ok(new Response<string>(ApiStatusCode.Created, result.Text))
                 : Results.BadRequest(new Response<string>(ApiStatusCode.BadRequest, result.Text, "Please choose a different time slot"));
         }
-        public async static Task<Response<List<BookingResponse>>> GetBookings(IBookingServices services)
+        public async static Task<Response<List<BookingResponse>>> GetBookings(IBookingServices services, HttpContext context)
         {
-            List<BookingResponse> result = await services.GetBookings();
+            int id = int.Parse(context.Request.Cookies["id"]);
+
+            List<BookingResponse> result = await services.GetBookings(id);
             return new Response<List<BookingResponse>>(ApiStatusCode.Created, "Created", result);
         }
         public async static Task<Response<string>> DeleteBooking(IBookingServices services, int id)
@@ -91,12 +94,6 @@ namespace Co_Working.API.Endpoints
                 : Results.BadRequest(new Response<string>(ApiStatusCode.BadRequest, result.Message, "Please choose a different time slot"));
 
         }
-        public async static Task<Response<List<WorkspaceResponse>>> GetWorkspaces(IBookingServices services)
-        {
-            List<WorkspaceResponse> result = await services.GetWorkspacesAsync();
-
-            return new Response<List<WorkspaceResponse>>(ApiStatusCode.Created, "Created", result);
-        }
         public async static Task<IResult> GetRoomsByType([FromQuery] WorkSpaceType type, IBookingServices services)
         {
             if (type != WorkSpaceType.OpenSpace)
@@ -106,17 +103,19 @@ namespace Co_Working.API.Endpoints
 
             return Results.Ok(await services.GetDesksByType(type));
         }
-        public async static Task<Response<List<BookingAvailableResponse>>> GetBookingsRooms([FromQuery] WorkSpaceType type, [FromQuery] int roomCapacity, IBookingServices services)
+        public async static Task<Response<List<BookingAvailableResponse>>> GetBookingsRooms([FromQuery] WorkSpaceType type, [FromQuery] int roomCapacity, IBookingServices services, int coworkingId)
         {
-            return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsByType(type, roomCapacity));
+            var result = await services.GetBookingsByType(type, roomCapacity, coworkingId);
+            return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsByType(type, roomCapacity, coworkingId));
         }
-        public async static Task<Response<List<BookingAvailableResponse>>> GetBookingsDesks(int id, IBookingServices services)
+        public async static Task<Response<List<BookingAvailableResponse>>> GetBookingsDesks(int id, IBookingServices services, int coworkingId)
         {
-            return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsDesks(id));
+            var result = await services.GetBookingsDesks(id, coworkingId);
+            return new Response<List<BookingAvailableResponse>>(ApiStatusCode.Success, "Returned", await services.GetBookingsDesks(id, coworkingId));
         }
-        public async static Task<BookingExistsResponse> CheckBookingExists([FromQuery] WorkSpaceType workspaceId, int sessionId, IBookingServices services)
+        public async static Task<BookingExistsResponse> CheckBookingExists([FromQuery] WorkSpaceType workspaceId, int sessionId, IBookingServices services, int coworkingId)
         {
-            var booking = await services.GetBookingByWorkspaceAndSessionIdAsync(workspaceId, sessionId);
+            var booking = await services.GetBookingByWorkspaceAndSessionIdAsync(workspaceId, sessionId, coworkingId);
 
 
             return booking;

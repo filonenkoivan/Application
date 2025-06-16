@@ -27,5 +27,6 @@ namespace Co_Woring.Application.DTOs.Booking
         public int RoomCapacity { get; set; }
         public int DeskNumber { get; set; }
         public int SessionId { get; set; }
+        public int CoworkingId { get; set; }
     }
 }

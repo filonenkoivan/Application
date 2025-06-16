@@ -22,18 +22,6 @@ namespace Co_Working.Persistence.Repository
     {
         public async Task<Booking> AddAsync(Booking booking)
         {
-            bool isOverlapping = await IsTimeOverlappingAsync(
-                booking.StartDateTime,
-                booking.EndDateTime,
-                booking.RoomCapacity,
-                booking.WorkSpaceType,
-                booking.DeskNumber);
-
-            if (isOverlapping)
-            {
-                return null;
-            }
-
             await db.Bookings.AddAsync(booking);
             await db.SaveChangesAsync();
 
@@ -55,7 +43,7 @@ namespace Co_Working.Persistence.Repository
 
             return true;
         }
-        public async Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, int roomCapacity, WorkSpaceType workSpaceType, int deskNumber = 0)
+        public async Task<bool> IsTimeOverlappingAsync(DateTime startDateTime, DateTime endDateTime, int roomCapacity, WorkSpaceType workSpaceType, int coworkingId, int deskNumber = 0)
         {
             var dateOnlyStart = startDateTime.Date;
             var dateOnlyEnd = endDateTime.Date;
@@ -73,6 +61,7 @@ namespace Co_Working.Persistence.Repository
                 if (roomCapacity == 0)
                 {
                     isOverlapping = await db.Bookings.AnyAsync(x =>
+                        x.CoworkingId == coworkingId &&
                         x.WorkSpaceType == workSpaceType &&
                         x.RoomCapacity == 0 &&
                         x.DeskNumber == deskNumber &&
@@ -83,6 +72,7 @@ namespace Co_Working.Persistence.Repository
                 else
                 {
                     isOverlapping = await db.Bookings.AnyAsync(x =>
+                        x.CoworkingId == coworkingId &&
                         x.WorkSpaceType == workSpaceType &&
                         x.RoomCapacity == roomCapacity &&
                         x.StartDateTime.Date == date &&
@@ -96,34 +86,7 @@ namespace Co_Working.Persistence.Repository
 
             return false;
         }
-        public async Task<List<WorkspaceResponse>> GetWorkspacesAsync()
-        {
-            return await db.Workspace
-                .Select(x => new WorkspaceResponse
-                {
-                    Name = x.Name,
-                    Description = x.Description,
-                    WorkSpaceType = x.WorkSpaceType,
-                    AvailabilityRooms = x.AvailabilityRooms
-                    .Select(y => new RoomDTO
-                    {
-                        Capacity = y.Capacity,
-                        Id = y.Id,
-                        Quantity = y.Quantity
-                    }).ToList(),
-                    AvailabilityDesks = x.AvailabilityDesks
-                    .Select(y => new DeskDTO
-                    {
-                        Id = y.Id,
-                        Quantity = y.Quantity
-                    }).ToList(),
-                    Amenities = x.Amenities,
-                    Capacity = x.Capacity,
-                    DescCount = x.DescCount,
-                    PhotoList = x.PhotoList,
-                }).ToListAsync();
-        }
-        public async Task<List<BookingResponse>> GetBookingsAsync()
+        public async Task<List<BookingResponse>> GetBookingsAsync(int id)
         {
             var bookingResponse = await db.Bookings.Select(x => new BookingResponse
             {
@@ -138,7 +101,7 @@ namespace Co_Working.Persistence.Repository
                 WorkSpaceType = x.WorkSpaceType,
                 RoomCapacity = x.RoomCapacity,
                 DeskNumber = x.DeskNumber,
-            }).ToListAsync();
+            }).Where(x => x.SessionId == id).ToListAsync();
 
             return bookingResponse;
         }
@@ -166,6 +129,7 @@ namespace Co_Working.Persistence.Repository
                 Id = x.Id,
                 Name = x.Name,
                 WorkSpaceType = x.WorkSpaceType,
+                CoworkingId = x.CoworkingId
 
 
             }).FirstOrDefaultAsync(x => x.Id == id);
@@ -193,7 +157,7 @@ namespace Co_Working.Persistence.Repository
             var workspace = await db.Workspace
                 .Include(w => w.AvailabilityDesks)
                 .Include(w => w.AvailabilityRooms)
-                .FirstOrDefaultAsync(w => w.WorkSpaceType == booking.WorkSpaceType);
+                .FirstOrDefaultAsync(w => w.WorkSpaceType == booking.WorkSpaceType && w.CoworkingId == booking.CoworkingId);
 
             if (booking.RoomCapacity > 0)
             {
@@ -203,9 +167,9 @@ namespace Co_Working.Persistence.Repository
 
             await db.SaveChangesAsync();
         }
-        public async Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity)
+        public async Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity, int coworkingId)
         {
-            var workspace = db.Bookings.Where(x => x.WorkSpaceType == type);
+            var workspace = db.Bookings.Where(x => x.WorkSpaceType == type && x.CoworkingId == coworkingId);
             if (capacity == 0)
             {
                 return await workspace.Select(x => new BookingAvailableResponse
@@ -225,9 +189,9 @@ namespace Co_Working.Persistence.Repository
                 }).ToListAsync();
             }
         }
-        public async Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId)
+        public async Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId, int coworkingId)
         {
-            var workspace = db.Bookings.Where(x => x.WorkSpaceType == WorkSpaceType.OpenSpace);
+            var workspace = db.Bookings.Where(x => x.WorkSpaceType == WorkSpaceType.OpenSpace && x.CoworkingId == coworkingId);
 
             return await workspace.Where(x => x.DeskNumber == deskId).Select(x => new BookingAvailableResponse
             {
@@ -237,14 +201,23 @@ namespace Co_Working.Persistence.Repository
             }).ToListAsync();
         }
 
-        public async Task<bool> ExistsBookingWithSessionIdAndWorkspaceTypeAsync(int sessionId, WorkSpaceType workSpaceType)
+        public async Task<bool> ExistsBookingWithSessionIdAndWorkspaceTypeAsync(int sessionId, WorkSpaceType workSpaceType, int coworkingId, int? excludeBookingId = null)
         {
-            return await db.Bookings.AnyAsync(x => x.WorkSpaceType == workSpaceType && x.SessionId == sessionId);
+            if (excludeBookingId != null)
+            {
+                var existingBooking = await db.Bookings.FirstOrDefaultAsync(x => x.Id == excludeBookingId);
+                if (existingBooking.WorkSpaceType == workSpaceType)
+                {
+                    return false;
+                }
+                return await db.Bookings.AnyAsync(x => x.WorkSpaceType == workSpaceType && x.SessionId == sessionId && x.CoworkingId == coworkingId);
+            }
+            return await db.Bookings.AnyAsync(x => x.WorkSpaceType == workSpaceType && x.SessionId == sessionId && x.CoworkingId == coworkingId);
         }
 
-        public async Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id)
+        public async Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id, int coworkingId)
         {
-            var result = await db.Bookings.FirstOrDefaultAsync(x => x.SessionId == id && x.WorkSpaceType == type);
+            var result = await db.Bookings.FirstOrDefaultAsync(x => x.SessionId == id && x.WorkSpaceType == type && x.CoworkingId == coworkingId);
             var enCulture = new CultureInfo("en-US");
 
             if (result == null)
@@ -258,10 +231,31 @@ namespace Co_Working.Persistence.Repository
             {
                 StartDate = result.StartDateTime.Date.ToString("MMMM d, yyyy", enCulture),
                 EndDate = result.EndDateTime.Date.ToString("MMMM d, yyyy", enCulture),
-                Type = result.RoomCapacity == 0 ? "Room" : "Desk",
+                Type = result.RoomCapacity == 0 ? "Desk" : "Room",
                 Exists = true,
                 Capacity = result.RoomCapacity
             };
+        }
+
+        public async Task<List<BookingAssistantResponse>> GetBookingsForAssitant(int id)
+        {
+            var bookings = db.Bookings.Where(x => x.SessionId == id);
+
+            var coworking = db.Coworkings;
+
+            var result = await bookings.Select(x => new BookingAssistantResponse
+            {
+                StartDate = x.StartDateTime.Date,
+                EndDate = x.EndDateTime.Date,
+                StartTime = x.StartDateTime.TimeOfDay,
+                EndTime = x.EndDateTime.TimeOfDay,
+                Location = coworking.FirstOrDefault(c => c.Id == x.CoworkingId).Address,
+                WorkSpaceType = x.WorkSpaceType,
+                DeskNumber = x.DeskNumber,
+                RoomCapacity = x.RoomCapacity
+            }).ToListAsync();
+
+            return result;
         }
     }
 }

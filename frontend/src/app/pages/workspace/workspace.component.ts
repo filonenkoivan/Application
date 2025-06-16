@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { WorkspaceCardComponent } from '../../features/workspace/components/workspace-card/workspace-card.component';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { WorkspaceResponse } from '../../models/workspace-card-module';
+import { WorkspaceResponse } from '../../models/workspace-card-model';
+import { WorkspaceService } from '../../services/workspace-card-service';
+import { ActivatedRoute, Route } from '@angular/router';
 
 @Component({
   selector: 'app-workspace',
@@ -13,14 +15,21 @@ import { WorkspaceResponse } from '../../models/workspace-card-module';
 })
 export class WorkspaceComponent implements OnInit {
   workspaces: WorkspaceResponse[] = [];
+  workspaceId: number | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private workspaceService: WorkspaceService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.http
-      .get<{ data: WorkspaceResponse[] }>('http://localhost:5086/workspaces')
+    this.workspaceId = Number(this.route.snapshot.queryParamMap.get('id'));
+
+    this.workspaceService
+      .getWorkspaces(this.workspaceId)
       .subscribe((response) => {
-        this.workspaces = response.data;
+        this.workspaces = response;
       });
   }
 }

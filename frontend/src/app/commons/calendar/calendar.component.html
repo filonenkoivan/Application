@@ -10,7 +10,7 @@
       placeholder="Start date"
       [(ngModel)]="startDate"
       name="startDate"
-      (dateChange)="onStartDateSelected($event.value)"
+      (dateInput)="onStartDateSelected($event.value)"
     />
     <input
       matEndDate
@@ -18,6 +18,7 @@
       [(ngModel)]="endDate"
       name="endDate"
       [readonly]="workspaceType === '3'"
+      (dateInput)="onEndDateSelected($event.value)"
     />
   </mat-date-range-input>
   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>

@@ -7,7 +7,7 @@
         <div class="flex w-[100%] flex-wrap row-container items-start">
           <div class="min-w-0 max-w-[340px] mr-[32px]">
             <div class="mb-[12px]">
-              <swiper-container thumbs-swiper=".slider--pag">
+              <swiper-container #mainSwiper>
                 <swiper-slide
                   *ngFor="let photo of workspace.photoList"
                   class=""
@@ -18,10 +18,10 @@
             </div>
             <div>
               <swiper-container
+                #thumbSwiper
                 slides-per-view="4"
                 mousewheel-force-to-axis="true"
                 space-between="8px"
-                class="slider--pag"
               >
                 <swiper-slide *ngFor="let photo of workspace.photoList"
                   ><img class="rounded-lg" [src]="photo" alt=""
@@ -163,10 +163,15 @@
           />
           <p>
             This workspace is already booked by you!
-            {{ bookingExistsResponse?.type ?? "" }} for
-            {{ bookingExistsResponse?.capacity ?? 0 }} people
-            <span *ngIf="(bookingExistsResponse?.capacity ?? 0) > 1">s</span>
-            <strong>{{ bookingExistsResponse?.startDate ?? "" }}</strong>
+            {{ bookingExistsResponse?.type ?? "" }}
+            <span *ngIf="(bookingExistsResponse?.capacity ?? 0) > 0">
+              for {{ bookingExistsResponse?.capacity ?? 0 }} people<span
+                *ngIf="(bookingExistsResponse?.capacity ?? 0) > 1"
+                >s</span
+              >
+            </span>
+
+            <strong> {{ bookingExistsResponse?.startDate ?? "" }}</strong>
             <strong> to </strong>
             <strong>{{ bookingExistsResponse?.endDate ?? "" }}</strong>
           </p>

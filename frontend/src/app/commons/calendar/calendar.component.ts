@@ -17,6 +17,8 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { BlockedSlotPerDay } from '../../features/workspace/components/workspace-form/workspace-form.component';
+import { routes } from '../../app.routes';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-calendar',
@@ -37,79 +39,92 @@ import { BlockedSlotPerDay } from '../../features/workspace/components/workspace
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent {
+  @Input() defaultStartTimeValue: string = '';
+  @Input() defaultEndTimeValue: string = '';
+
   @Input() startDateTime: Date | null = null;
   @Input() endDateTime: Date | null = null;
   internalStartDate: Date | null = null;
   internalEndDate: Date | null = null;
 
+  startTime: string | null = '08:00';
+  endTime: string | null = '08:00';
+
+  isStartUpdated: boolean = false;
+  isEndUpdated: boolean = false;
+
+  constructor(private router: ActivatedRoute) {
+    this.generateTimeOptions();
+  }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['startDateTime']) {
+      if (this.isStartUpdated) {
+        this.defaultStartTimeValue = '';
+        this.isStartUpdated = false;
+      }
+
       this.internalStartDate = this.startDateTime;
 
       if (this.startDateTime) {
         this.startDate = new Date(this.startDateTime);
-        this.startTime = this.formatTime(this.startDateTime);
+        this.startTime = this.defaultStartTimeValue || this.startTime || '';
+        if (this.defaultStartTimeValue) {
+          this.isStartUpdated = true;
+        }
       } else {
         this.startDate = null;
-        this.startTime = '08:00';
+        this.startTime = this.defaultStartTimeValue
+          ? this.defaultStartTimeValue
+          : '08:00';
       }
     }
 
     if (changes['endDateTime']) {
+      if (this.isEndUpdated) {
+        this.defaultEndTimeValue = '';
+        this.isEndUpdated = false;
+      }
       this.internalEndDate = this.endDateTime;
 
       if (this.endDateTime) {
         this.endDate = new Date(this.endDateTime);
-        this.endTime = this.formatTime(this.endDateTime);
+        this.endTime = this.defaultEndTimeValue || this.endTime || '';
+        if (this.defaultEndTimeValue) {
+          this.isEndUpdated = true;
+        }
       } else {
         this.endDate = null;
-        this.endTime = '08:00';
+        this.endTime = this.defaultEndTimeValue
+          ? this.defaultEndTimeValue
+          : '08:00';
       }
     }
   }
-  private formatTime(date: Date): string {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}`;
-  }
+
   private _workspaceType: string = '1';
 
   @Input()
   set workspaceType(value: string) {
     this._workspaceType = value;
-
     this.startDate = null;
     this.endDate = null;
-    this.startTime = '08:00';
-    this.endTime = '08:00';
 
-    this.emitStartDateTime();
-    this.emitEndDateTime();
+    this.startTime = null;
+    this.endTime = null;
+
+    setTimeout(() => {
+      this.startTime = '08:00';
+      this.endTime = '08:00';
+
+      this.emitStartDateTime();
+      this.emitEndDateTime();
+    });
   }
 
   get workspaceType(): string {
     return this._workspaceType;
   }
-  private correctEndDateIfNeeded() {
-    const maxDate = this.maxEndDate;
 
-    if (this.startDate && this.endDate && maxDate && this.endDate > maxDate) {
-      this.endDate = maxDate;
-      this.emitEndDateTime();
-    }
-
-    if (this.workspaceType === '3') {
-      if (this.startDate) {
-        this.endDate = this.startDate;
-        this.emitEndDateTime();
-      } else {
-        this.endDate = null;
-        this.emitEndDateTime();
-      }
-    }
-  }
   get minSelectableDate(): Date | null {
     if (this.workspaceType === '3') {
       return null;
@@ -151,7 +166,6 @@ export class CalendarComponent {
     } else {
       if (date >= this.startDate) {
         this.endDate = date;
-
         if (!this.endTime) {
           this.endTime = '08:00';
         }
@@ -171,23 +185,7 @@ export class CalendarComponent {
     }
   }
 
-  startTime: string | null = '08:00';
-  endTime: string | null = '08:00';
-
-  minDate: Date = new Date();
-
-  dateFilter = (d: Date | null): boolean => {
-    const date = d || new Date();
-    return !this.bookedDates.some(
-      (booked) => date >= booked.start && date <= booked.end
-    );
-  };
-
   timeOptions: string[] = [];
-
-  constructor() {
-    this.generateTimeOptions();
-  }
 
   generateTimeOptions() {
     const startHour = 8;
@@ -222,17 +220,20 @@ export class CalendarComponent {
 
     return false;
   }
-  onStartDateSelected(date: Date) {
+  onStartDateSelected(date: Date | null) {
+    if (!date) return;
+
     this.startDate = date;
 
-    if (!this.startTime) {
-      this.startTime = '08:00';
-    }
+    this.startTime = '08:00';
 
     this.emitStartDateTime();
 
     if (this.workspaceType === '3') {
       this.endDate = date;
+      if (!this.endTime) {
+        this.endTime = '08:00';
+      }
       this.emitEndDateTime();
     }
   }
@@ -242,17 +243,24 @@ export class CalendarComponent {
   }
   private emitStartDateTime() {
     const date = this.startDate ?? new Date();
+
     if (this.startTime) {
       const [hour, minute] = this.startTime.split(':').map(Number);
       const dt = new Date(date);
       dt.setHours(hour, minute, 0, 0);
+      console.log(this.startTime);
       this.startDateTimeChange.emit(dt);
     } else {
       this.startDateTimeChange.emit(null);
     }
   }
 
-  onEndDateSelected(date: Date) {
+  onEndDateSelected(date: Date | null) {
+    if (!date) {
+      this.endDate = null;
+      this.endDateTimeChange.emit(null);
+      return;
+    }
     this.endDate = date;
 
     if (!this.endTime) {
@@ -269,6 +277,7 @@ export class CalendarComponent {
 
   private emitEndDateTime() {
     const date = this.endDate ?? new Date();
+
     if (this.endTime) {
       const [hour, minute] = this.endTime.split(':').map(Number);
       const dt = new Date(date);
@@ -303,4 +312,23 @@ export class CalendarComponent {
         return null;
     }
   }
+  minDate: Date = new Date();
 }
+
+// private emitEndDateTime() {
+//   if (!this.endDate) {
+//     this.endDateTimeChange.emit(null);
+//     return;
+//   }
+
+//   const date = new Date(this.endDate);
+
+//   if (this.endTime) {
+//     const [hour, minute] = this.endTime.split(':').map(Number);
+//     date.setHours(hour, minute, 0, 0);
+//   } else {
+//     date.setHours(8, 0, 0, 0); // дефолтний час
+//   }
+
+//   this.endDateTimeChange.emit(date);
+// }

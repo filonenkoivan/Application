@@ -17,15 +17,14 @@ namespace Co_Woring.Application.Interfaces
     public interface IBookingServices
     {
         Task<(bool Success, string Text)> CreateAsync(BookingRequest request);
-        Task<List<WorkspaceResponse>> GetWorkspacesAsync();
-        Task<List<BookingResponse>> GetBookings();
+        Task<List<BookingResponse>> GetBookings(int id);
         Task<Response<string>> DeleteBooking(int id);
         Task<BookingResponse> GetBookingAsync(int id);
         Task<List<RoomDTO>> GetRoomsByType(WorkSpaceType type);
         Task<List<DeskDTO>> GetDesksByType(WorkSpaceType type);
         Task<(bool Success, string Message)> UpdateAsync(int id, BookingRequest request);
-        Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity);
-        Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId);
-        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id);
+        Task<List<BookingAvailableResponse>> GetBookingsByType(WorkSpaceType type, int capacity, int coworkingId);
+        Task<List<BookingAvailableResponse>> GetBookingsDesks(int deskId, int coworkingId);
+        Task<BookingExistsResponse> GetBookingByWorkspaceAndSessionIdAsync(WorkSpaceType type, int id, int coworkingId);
     }
 }
